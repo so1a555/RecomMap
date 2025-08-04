@@ -29,6 +29,9 @@
         <activity
             android:name=".TestActivity"
             android:exported="true"/>
+        <activity
+            android:name=".AddSpotActivity"
+            android:exported="false"/>
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
