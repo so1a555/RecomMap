@@ -22,7 +22,7 @@ public abstract class AppDatabase extends RoomDatabase {
                                     context.getApplicationContext(),
                                     AppDatabase.class,
                                     "recommap_db"
-                            ).allowMainThreadQueries() // for test only
+                            )
                             .build();
                 }
             }
