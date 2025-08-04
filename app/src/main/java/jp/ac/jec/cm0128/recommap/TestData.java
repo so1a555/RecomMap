@@ -73,9 +73,12 @@ public final class TestData {
     public static List<TestItem> createTestItems(@NonNull final Context context, final int size) {
         Log.d(TAG, "createTestItems: IN");
         var testItems = new ArrayList<TestItem>();
+        var random = new Random();
         for (int i = 0; i < size; i++) {
-            var longitude = new Random().doubles(1, NAKANO_STATION_LATLNG.longitude, JEC_LATLNG.longitude).toArray()[0];
-            var latitude = new Random().doubles(1, NAKANO_STATION_LATLNG.latitude, JEC_LATLNG.latitude).toArray()[0];
+            var longitude = random.nextDouble() * (JEC_LATLNG.longitude - NAKANO_STATION_LATLNG.longitude)
+                    + NAKANO_STATION_LATLNG.longitude;
+            var latitude = random.nextDouble() * (JEC_LATLNG.latitude - NAKANO_STATION_LATLNG.latitude)
+                    + NAKANO_STATION_LATLNG.latitude;
             var addressLine = getAddressLine(context, latitude, longitude);
             var testItem = new TestItem("ランダムな指定", addressLine, latitude, longitude, "ランダム");
             Log.d(TAG, testItem.toString());
