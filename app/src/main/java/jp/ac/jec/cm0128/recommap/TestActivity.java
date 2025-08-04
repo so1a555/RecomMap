@@ -20,6 +20,8 @@ import com.google.android.material.chip.ChipGroup;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 /**
  * 地図上に保存済みのスポットを表示するアクティビティ。
@@ -30,6 +32,7 @@ public class TestActivity extends AppCompatActivity implements OnMapReadyCallbac
     private GoogleMap googleMap;
     private ChipGroup chipGroup;
     private final Map<Marker, Item> markerMap = new HashMap<>();
+    private final Executor executor = Executors.newSingleThreadExecutor();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,9 +43,13 @@ public class TestActivity extends AppCompatActivity implements OnMapReadyCallbac
                 startActivity(new Intent(this, AddSpotActivity.class)));
 
         findViewById(R.id.btn_delete_all).setOnClickListener(v -> {
-            AppDatabase.getInstance(this).itemDao().deleteAll();
-            loadMarkers();
-            Toast.makeText(this, "全件削除しました", Toast.LENGTH_SHORT).show();
+            executor.execute(() -> {
+                AppDatabase.getInstance(this).itemDao().deleteAll();
+                runOnUiThread(() -> {
+                    loadMarkers();
+                    Toast.makeText(this, "全件削除しました", Toast.LENGTH_SHORT).show();
+                });
+            });
         });
 
         chipGroup = findViewById(R.id.category_chip_group);
@@ -86,20 +93,24 @@ public class TestActivity extends AppCompatActivity implements OnMapReadyCallbac
     private void loadMarkers() {
         if (googleMap == null) return;
 
-        googleMap.clear();
-        markerMap.clear();
+        executor.execute(() -> {
+            List<Item> items = AppDatabase.getInstance(this).itemDao().getAll();
+            runOnUiThread(() -> {
+                googleMap.clear();
+                markerMap.clear();
 
-        List<Item> items = AppDatabase.getInstance(this).itemDao().getAll();
-        for (Item item : items) {
-            Marker marker = googleMap.addMarker(new MarkerOptions()
-                    .position(new LatLng(item.latitude, item.longitude))
-                    .title(item.name)
-                    .snippet(item.comment + " 評価: " + item.rating)
-                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE)));
-            markerMap.put(marker, item);
-        }
+                for (Item item : items) {
+                    Marker marker = googleMap.addMarker(new MarkerOptions()
+                            .position(new LatLng(item.latitude, item.longitude))
+                            .title(item.name)
+                            .snippet(item.comment + " 評価: " + item.rating)
+                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE)));
+                    markerMap.put(marker, item);
+                }
 
-        filterMarkers();
+                filterMarkers();
+            });
+        });
     }
 
     private void filterMarkers() {
